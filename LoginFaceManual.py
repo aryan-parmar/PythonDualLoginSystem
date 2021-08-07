@@ -5,10 +5,10 @@ import time
 from face_recognition import face_encodings, compare_faces, load_image_file
 import os
 from PIL import ImageTk, Image
+import pickle
 def pascheck(idt, past):
     if idt == "StartCode@@@" and past == "12121@!#":
         root.after(1000, root.destroy)
-        print("yo")
         #################################### Your Code after login ###################################
         sroot = Tk()
         sroot.title("login successfull")
@@ -55,9 +55,16 @@ def loginGui():
 def facelog():
     global auth
     path = "IMGD"
-    known_image = load_image_file(path+"/model.png")
+    try:
+        with open(r'./IMGD/img.dat', 'rb') as f:
+            known_image = pickle.load(f)
+    except:
+        known_image = load_image_file(path+"/model.png")
+        f = open(r'./IMGD/img.dat', 'wb')
+        pickle.dump(known_image,f)
+        f.close()
     encoding = face_encodings(known_image)[0]
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
     while not auth:
         success, img = cap.read()
         imgS = cv2.resize(img, (0, 0), None, 0.25, 0.25)
@@ -89,7 +96,7 @@ if __name__ == "__main__":
         create = Button(root, text="Create Face model", bg="black", fg="white", bd=0,
                         command=lambda: cv2.imwrite(os.getcwd() + "/IMGD/model.png", img1))
         create.place(rely=0.93, relx=0.44)
-        cap = cv2.VideoCapture(0)
+        cap = cv2.VideoCapture(0,cv2.CAP_DSHOW)
         while True:
             success, img = cap.read()
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -97,8 +104,6 @@ if __name__ == "__main__":
             img = ImageTk.PhotoImage(Image.fromarray(img))
             frame['image'] = img
             root.update()
-    else:
-        pass
     auth = False
     a = Process(target=facelog, args="")
     a.start()
